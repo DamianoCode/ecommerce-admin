@@ -8,15 +8,15 @@ export default async function SetupLayout({
 }: {
   children: React.ReactNode;
 }) {
-  try {
-    const { userId } = auth();
+  const { userId } = auth();
 
-    if (!userId) redirect("/sign-in");
+  if (!userId) redirect("/sign-in");
 
-    const store = await prismadb.store.findFirst({ where: { userId } });
+  const store = await prismadb.store.findFirst({ where: { userId } });
 
-    if (store) redirect(`/${store.id}`);
+  if (store) {
+    redirect(`/${store.id}`);
+  }
 
-    return <>{children}</>;
-  } catch (e) {}
+  return <>{children}</>;
 }
