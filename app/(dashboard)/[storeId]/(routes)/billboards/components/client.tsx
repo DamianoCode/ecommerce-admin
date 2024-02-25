@@ -4,13 +4,19 @@ import { useParams, useRouter } from "next/navigation";
 
 import { Plus } from "lucide-react";
 
+import { BillboardColumn, columns } from "./columns";
+
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { Separator } from "@radix-ui/react-separator";
+import { DataTable } from "@/components/ui/data-table";
+import { ApiList } from "@/components/ui/api-list";
 
-interface BillboardClientProps {}
+interface BillboardClientProps {
+  data: BillboardColumn[];
+}
 
-export const BillboardClient: React.FC<BillboardClientProps> = () => {
+export const BillboardClient: React.FC<BillboardClientProps> = ({ data }) => {
   const router = useRouter();
   const params = useParams();
 
@@ -18,7 +24,7 @@ export const BillboardClient: React.FC<BillboardClientProps> = () => {
     <>
       <div className="flex items-center justify-between">
         <Heading
-          title={`Banery (0)`}
+          title={`Banery (${data?.length || 0})`}
           description="Zarządzaj banerami na sklepie"
         />
         <Button
@@ -31,6 +37,11 @@ export const BillboardClient: React.FC<BillboardClientProps> = () => {
         </Button>
       </div>
       <Separator />
+      <DataTable data={data} columns={columns} searchKey="label" />
+      <Separator />
+      <Heading title={`API`} description="Zapytania API dla banerów" />
+      <Separator />
+      <ApiList entityName="billboards" entityIdName="billboardId" />
     </>
   );
 };

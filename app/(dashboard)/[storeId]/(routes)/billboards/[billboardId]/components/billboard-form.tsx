@@ -8,7 +8,6 @@ import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter } from "next/navigation";
-import { useOrigin } from "@/hooks/use-origin";
 
 import { Save, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,9 +23,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
-import { Billboard, Store } from "@prisma/client";
+import { Billboard } from "@prisma/client";
 import { AlertModal } from "@/components/modals/alert-modal";
-import { ApiAlert } from "@/components/ui/api-alert";
 import ImageUpload from "@/components/ui/image-upload";
 
 interface BillboardFormProps {
@@ -45,7 +43,6 @@ export const BillboardForm: React.FC<BillboardFormProps> = ({
 }) => {
   const { storeId, billboardId } = useParams();
   const router = useRouter();
-  const origin = useOrigin();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -70,9 +67,9 @@ export const BillboardForm: React.FC<BillboardFormProps> = ({
       if (initialData)
         await axios.patch(`/api/${storeId}/billboards/${billboardId}`, data);
       else await axios.post(`/api/${storeId}/billboards`, data);
-      router.refresh();
       router.push(`/${storeId}/billboards`);
       toast.success(toastMessage);
+      router.refresh();
     } catch (error) {
       toast.error("Wystąpił błąd!");
     } finally {
@@ -165,7 +162,6 @@ export const BillboardForm: React.FC<BillboardFormProps> = ({
           </Button>
         </form>
       </Form>
-      <Separator />
     </>
   );
 };
