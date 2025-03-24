@@ -45,12 +45,10 @@ export const CellAction: React.FC<CellActionProps> = ({ data: { id } }) => {
     try {
       setLoading(true);
       await axios.delete(`/api/${storeId}/categories/${id}`);
-      toast.success("Udało się usunąć baner");
+      toast.success("Udało się usunąć kategorię");
       router.refresh();
     } catch (error) {
-      toast.error(
-        "Wystąpił błąd! Usuń wszystkie kategorię korzystającego z tego banera!"
-      );
+      toast.error("Wystąpił błąd!");
     } finally {
       setLoading(false);
     }
