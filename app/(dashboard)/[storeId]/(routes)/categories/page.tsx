@@ -13,11 +13,15 @@ const Categorys: React.FC<CategoryProps> = async ({ params }) => {
   const { storeId } = params;
   const categories = await prismadb.category.findMany({
     where: { storeId: storeId },
+    include: {
+      billboard: true,
+    },
   });
 
   const formattedCategories: CategoryColumn[] = categories.map((item) => ({
     id: item.id,
     name: item.name,
+    billboardLabel: item.billboard?.label,
     createdAt: format(item.createdAt, "do MMMM, yyyy", {
       locale: pl,
     }),
