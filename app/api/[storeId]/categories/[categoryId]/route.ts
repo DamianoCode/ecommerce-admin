@@ -47,6 +47,8 @@ export async function PATCH(
     if (!userId) return new NextResponse("Unauthenticated", { status: 401 });
 
     if (!name) return new NextResponse("Name is required", { status: 400 });
+    if (!billboardId)
+      return new NextResponse("Billboard Id is required", { status: 400 });
     if (!storeId)
       return new NextResponse("Store ID is required", { status: 400 });
 
@@ -57,12 +59,12 @@ export async function PATCH(
     if (!storeByUserId)
       return new NextResponse("Unauthorized", { status: 403 });
 
-    const billboard = await prismadb.category.updateMany({
+    const category = await prismadb.category.updateMany({
       where: { id: categoryId, storeId: storeId },
       data: { name, billboardId },
     });
 
-    return NextResponse.json(billboard);
+    return NextResponse.json(category);
   } catch (e) {
     console.log("[CATEGORY_PATCH]", e);
     return new NextResponse("Internal error", { status: 500 });
