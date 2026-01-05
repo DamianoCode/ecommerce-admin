@@ -1,0 +1,36 @@
+import { format } from "date-fns";
+import { pl } from "date-fns/locale";
+import prismadb from "@/lib/prismadb";
+
+import { SizeClient } from "./components/client";
+import { SizeColumn } from "./components/columns";
+
+interface SizeProps {
+  params: { storeId: string };
+}
+
+const Sizes: React.FC<SizeProps> = async ({ params }) => {
+  const { storeId } = params;
+  const sizes = await prismadb.size.findMany({
+    where: { storeId: storeId },
+  });
+
+  const formattedSizes: SizeColumn[] = sizes.map((item) => ({
+    id: item.id,
+    name: item.name,
+    value: item.value,
+    createdAt: format(item.createdAt, "do MMMM, yyyy", {
+      locale: pl,
+    }),
+  }));
+
+  return (
+    <div className="flex-col">
+      <div className="flex-1 space-y-4 p-8 pt-6">
+        <SizeClient data={formattedSizes} />
+      </div>
+    </div>
+  );
+};
+
+export default Sizes;
