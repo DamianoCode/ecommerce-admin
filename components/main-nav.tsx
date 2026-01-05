@@ -28,6 +28,26 @@ export function MainNav({
       active: pathName === `/${params.storeId}/categories`,
     },
     {
+      href: `/${params.storeId}/sizes`,
+      label: "Rozmiary",
+      active: pathName === `/${params.storeId}/sizes`,
+    },
+    {
+      href: `/${params.storeId}/colors`,
+      label: "Kolory",
+      active: pathName === `/${params.storeId}/colors`,
+    },
+    {
+      href: `/${params.storeId}/products`,
+      label: "Produkty",
+      active: pathName === `/${params.storeId}/products`,
+    },
+    {
+      href: `/${params.storeId}/orders`,
+      label: "Zamówienia",
+      active: pathName === `/${params.storeId}/orders`,
+    },
+    {
       href: `/${params.storeId}/settings`,
       label: "Ustawienia",
       active: pathName === `/${params.storeId}/settings`,
