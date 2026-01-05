@@ -23,37 +23,39 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
-import { Size } from "@prisma/client";
+import { Color } from "@prisma/client";
 import { AlertModal } from "@/components/modals/alert-modal";
-import ImageUpload from "@/components/ui/image-upload";
 
-interface SizeFormProps {
-  initialData: Size | null;
+interface ColorFormProps {
+  initialData: Color | null;
 }
 
-type SizeFormValues = z.infer<typeof formSchema>;
+type ColorFormValues = z.infer<typeof formSchema>;
 
 const formSchema = z.object({
   name: z.string().min(1),
-  value: z.string().min(1),
+  value: z
+    .string()
+    .min(4)
+    .regex(/^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$/, {
+      message: "Kod koloru (hex #RRGGBB lub #RGB) jest niepoprawny",
+    }),
 });
 
-export const SizeForm: React.FC<SizeFormProps> = ({ initialData }) => {
-  const { storeId, sizeId } = useParams();
+export const ColorForm: React.FC<ColorFormProps> = ({ initialData }) => {
+  const { storeId, colorId } = useParams();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const title = initialData ? "Edytuj rozmiar" : "Dodaj rozmiar";
+  const title = initialData ? "Edytuj kolor" : "Dodaj kolor";
   const description = initialData
-    ? "Zarządzaj ustawieniami rozmiaru"
-    : "Uzupełnij dane dla rozmiaru";
-  const toastMessage = initialData
-    ? "Rozmiar zaktualizowany"
-    : "Utworzono rozmiar";
+    ? "Zarządzaj ustawieniami koloru"
+    : "Uzupełnij dane dla koloru";
+  const toastMessage = initialData ? "Kolor zaktualizowany" : "Utworzono kolor";
   const action = initialData ? "Zapisz zmiany" : "Utwórz";
 
-  const form = useForm<SizeFormValues>({
+  const form = useForm<ColorFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {
       name: "",
@@ -61,13 +63,13 @@ export const SizeForm: React.FC<SizeFormProps> = ({ initialData }) => {
     },
   });
 
-  const onSubmit = async (data: SizeFormValues) => {
+  const onSubmit = async (data: ColorFormValues) => {
     try {
       setLoading(true);
       if (initialData)
-        await axios.patch(`/api/${storeId}/sizes/${sizeId}`, data);
-      else await axios.post(`/api/${storeId}/sizes`, data);
-      router.push(`/${storeId}/sizes`);
+        await axios.patch(`/api/${storeId}/colors/${colorId}`, data);
+      else await axios.post(`/api/${storeId}/colors`, data);
+      router.push(`/${storeId}/colors`);
       toast.success(toastMessage);
       router.refresh();
     } catch (error) {
@@ -80,13 +82,11 @@ export const SizeForm: React.FC<SizeFormProps> = ({ initialData }) => {
   const onDelete = async () => {
     try {
       setLoading(true);
-      await axios.delete(`/api/${storeId}/sizes/${sizeId}`);
-      router.push(`/${storeId}/sizes`);
-      toast.success("Udało się usunąć rozmiar");
+      await axios.delete(`/api/${storeId}/colors/${colorId}`);
+      router.push(`/${storeId}/colors`);
+      toast.success("Udało się usunąć koloru");
     } catch (error) {
-      toast.error(
-        "Wystąpił błąd! Usuń wszystkie kategorię korzystającego z tego rozmiara!"
-      );
+      toast.error("Wystąpił błąd!");
     } finally {
       setLoading(false);
     }
@@ -106,7 +106,7 @@ export const SizeForm: React.FC<SizeFormProps> = ({ initialData }) => {
           <Button
             disabled={loading}
             variant="destructive"
-            size="sm"
+            color="sm"
             onClick={() => setOpen(true)}
           >
             <Trash className="h-4 w-4" />
@@ -129,7 +129,7 @@ export const SizeForm: React.FC<SizeFormProps> = ({ initialData }) => {
                   <FormControl>
                     <Input
                       disabled={loading}
-                      placeholder="Nazwa rozmiaru"
+                      placeholder="Nazwa koloru"
                       {...field}
                     />
                   </FormControl>
@@ -144,11 +144,17 @@ export const SizeForm: React.FC<SizeFormProps> = ({ initialData }) => {
                 <FormItem>
                   <FormLabel>Wartość</FormLabel>
                   <FormControl>
-                    <Input
-                      disabled={loading}
-                      placeholder="Wartość rozmiaru (np. XXL)"
-                      {...field}
-                    />
+                    <div className="flex items-center gap-x-4">
+                      <Input
+                        disabled={loading}
+                        placeholder="Wartość koloru (np. #000000)"
+                        {...field}
+                      />
+                      <div
+                        className="border p-4 rounded-full"
+                        style={{ backgroundColor: field.value }}
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

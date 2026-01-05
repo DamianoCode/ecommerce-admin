@@ -41,13 +41,13 @@ export async function PATCH(
     const { userId } = auth();
     const body = await req.json();
 
-    const { name, hexValue } = body;
+    const { name, value } = body;
     const { storeId, colorId } = params;
 
     if (!userId) return new NextResponse("Unauthenticated", { status: 401 });
 
     if (!name) return new NextResponse("Name is required", { status: 400 });
-    if (!hexValue)
+    if (!value)
       return new NextResponse("Hex value is required", { status: 400 });
     if (!storeId)
       return new NextResponse("Store ID is required", { status: 400 });
@@ -61,7 +61,7 @@ export async function PATCH(
 
     const color = await prismadb.color.updateMany({
       where: { id: colorId, storeId: storeId },
-      data: { name, hexValue },
+      data: { name, value },
     });
 
     return NextResponse.json(color);
