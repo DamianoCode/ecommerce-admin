@@ -1,6 +1,7 @@
 import prismadb from "@/lib/prismadb";
 import { auth } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
+import { Product } from "@prisma/client";
 
 export async function GET(
   req: Request,
@@ -8,20 +9,21 @@ export async function GET(
     params,
   }: {
     params: {
-      billboardId: string;
+      productId: string;
     };
   }
 ) {
   try {
-    const { billboardId } = params;
+    const { productId } = params;
 
-    const billboard = await prismadb.billboard.findFirst({
-      where: { id: billboardId },
+    const product = await prismadb.product.findUnique({
+      where: { id: productId },
+      include: { images: true, category: true, size: true, color: true },
     });
 
-    return NextResponse.json(billboard);
+    return NextResponse.json(product);
   } catch (e) {
-    console.log("[BILLBOARD_GET]", e);
+    console.log("[PRODUCT_GET]", e);
     return new NextResponse("Internal error", { status: 500 });
   }
 }
@@ -32,23 +34,39 @@ export async function PATCH(
     params,
   }: {
     params: {
-      billboardId: string;
+      productId: string;
       storeId: string;
     };
   }
 ) {
   try {
     const { userId } = auth();
-    const body = await req.json();
+    const body = (await req.json()) as Product & { images: [{ url: string }] };
 
-    const { label, imageUrl } = body;
-    const { storeId, billboardId } = params;
+    const {
+      categoryId,
+      colorId,
+      sizeId,
+      name,
+      price,
+      isFeatured,
+      isArchived,
+      createdAt,
+      updatedAt,
+      images,
+    } = body;
+    const { storeId, productId } = params;
 
     if (!userId) return new NextResponse("Unauthenticated", { status: 401 });
 
-    if (!label) return new NextResponse("Label is required", { status: 400 });
-    if (!imageUrl)
-      return new NextResponse("Image URL is required", { status: 400 });
+    if (!name) return new NextResponse("Name is required", { status: 400 });
+    if (!images || !images.length)
+      return new NextResponse("Images are required", { status: 400 });
+    if (!price) return new NextResponse("Price is required", { status: 400 });
+    if (!categoryId)
+      return new NextResponse("Category is required", { status: 400 });
+    if (!colorId) return new NextResponse("Color is required", { status: 400 });
+    if (!sizeId) return new NextResponse("Size is required", { status: 400 });
     if (!storeId)
       return new NextResponse("Store ID is required", { status: 400 });
 
@@ -59,30 +77,53 @@ export async function PATCH(
     if (!storeByUserId)
       return new NextResponse("Unauthorized", { status: 403 });
 
-    const billboard = await prismadb.billboard.updateMany({
-      where: { id: billboardId, storeId: storeId },
-      data: { label, imageUrl },
+    const product = await prismadb.product.findFirst({
+      where: { id: productId, storeId: storeId },
+      include: {
+        images: true,
+      },
     });
 
-    return NextResponse.json(billboard);
+    if (!product) return new NextResponse("Product not found", { status: 404 });
+
+    await prismadb.product.update({
+      where: { id: productId, storeId: storeId },
+      data: {
+        categoryId,
+        colorId,
+        sizeId,
+        name,
+        price,
+        isFeatured,
+        isArchived,
+        createdAt,
+        updatedAt,
+        images: {
+          deleteMany: {},
+          createMany: { data: images.map((image) => image) },
+        },
+      },
+    });
+
+    return NextResponse.json(product);
   } catch (e) {
-    console.log("[BILLBOARD_PATCH]", e);
+    console.log("[PRODUCT_PATCH]", e);
     return new NextResponse("Internal error", { status: 500 });
   }
 }
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { billboardId: string; storeId: string } }
+  { params }: { params: { productId: string; storeId: string } }
 ) {
   try {
     const { userId } = auth();
 
-    const { storeId, billboardId } = params;
+    const { storeId, productId } = params;
 
     if (!userId) return new NextResponse("Unauthorized", { status: 401 });
-    if (!billboardId)
-      return new NextResponse("Billboard ID is required", { status: 400 });
+    if (!productId)
+      return new NextResponse("Product ID is required", { status: 400 });
 
     const storeByUserId = await prismadb.store.findFirst({
       where: { userId, id: storeId },
@@ -91,13 +132,13 @@ export async function DELETE(
     if (!storeByUserId)
       return new NextResponse("Unauthorized", { status: 403 });
 
-    const billboard = await prismadb.billboard.deleteMany({
-      where: { id: billboardId, storeId },
+    const product = await prismadb.product.deleteMany({
+      where: { id: productId, storeId },
     });
 
-    return NextResponse.json(billboard);
+    return NextResponse.json(product);
   } catch (e) {
-    console.log("[BILLBOARD_DELETE]", e);
+    console.log("[PRODUCT_DELETE]", e);
     return new NextResponse("Internal error", { status: 500 });
   }
 }
